@@ -1,0 +1,32 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "${BACKEND_PORT:-8080}:8000"
+    environment:
+      DATABASE_URL: sqlite:////data/chat.db
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY:?DASHSCOPE_API_KEY is required}
+      DASHSCOPE_BASE_URL: ${DASHSCOPE_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
+      CHAT_MODEL: ${CHAT_MODEL:-deepseek-v4-pro}
+      DEFAULT_MODE: ${DEFAULT_MODE:-normal}
+      SYSTEM_PROMPT: ${SYSTEM_PROMPT:-You are a helpful assistant.}
+      MAX_CONTEXT_MESSAGES: ${MAX_CONTEXT_MESSAGES:-40}
+    volumes:
+      - backend-data:/data
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  backend-data:
